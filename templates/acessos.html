@@ -45,7 +45,7 @@
     .sidebar:hover + .content {
         margin-left: 250px;
     }
-</style>
+  </style>
 </head>
 <body>
   <!-- Barra lateral -->
@@ -158,7 +158,7 @@
                 <option value="Operações">Operações</option>
                 <option value="Administrativo">Administrativo</option>
             </select>
-        </div>
+          </div>
           <button type="submit" class="btn btn-success">Salvar</button>
         </form>
       </div>
@@ -171,7 +171,7 @@
           <div class="col-md-3">
             <label class="form-label">Nome</label>
             <input type="text" class="form-control" name="nome" value="{{ acesso.nome if acesso else '' }}" >
-        </div>
+          </div>
           <div class="col-md-3">
             <label class="form-label">Tipo</label>
             <select class="form-control" name="tipo">
@@ -182,7 +182,7 @@
                 <option value="Tiny">Tiny</option>
                 <option value="Outros">Outros</option>
             </select>
-        </div>
+          </div>
           <div class="col-md-3">
             <label class="form-label">Setor</label>
             <select class="form-control" name="setor">
@@ -193,8 +193,8 @@
                 <option value="Operações">Operações</option>
                 <option value="Administrativo">Administrativo</option>
             </select>
-        </div>
-        <div class="col-auto">
+          </div>
+          <div class="col-auto">
             <button type="submit" class="btn btn-primary">Filtrar</button>
           </div>
         </form>
@@ -242,7 +242,13 @@
                   <ul class="list-group">
                     {% for email in acesso.emails %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                      <span>{{ email.email }}</span>
+                      <div class="email-container" data-email-id="{{ email.id }}">
+                        <span class="email-text">{{ email.email }}</span>
+                        <!-- Input para edição, inicialmente oculto -->
+                        <input type="text" class="form-control email-input d-none" value="{{ email.email }}">
+                        <button class="btn btn-sm btn-secondary edit-email-btn" onclick="toggleEmailEdit(this)">Editar</button>
+                        <button class="btn btn-sm btn-success save-email-btn d-none" onclick="saveEmailEdit(this)">Salvar</button>
+                      </div>
                       <span>Senha: {{ email.senha }}</span>
                     </li>
                     {% endfor %}
@@ -267,7 +273,8 @@
                       <div id="email-container-{{ acesso.id }}">
                         <div class="mb-3 row email-entry">
                           <div class="col-md-6">
-                            <input type="email" class="form-control" name="emails[]" placeholder="E-mail" required>
+                            <!-- Alterado de type="email" para type="text" para liberar o campo -->
+                            <input type="text" class="form-control" name="emails[]" placeholder="E-mail" required>
                           </div>
                           <div class="col-md-6">
                             <input type="password" class="form-control" name="senhas[]" placeholder="Senha" required>
@@ -296,20 +303,75 @@
 </main>
 
 <script>
-
   function adicionarCampoEmail(acessoId) {
     var container = document.getElementById('email-container-' + acessoId);
     var qtd = container.getElementsByClassName('email-entry').length;
     if (qtd < 6) {
       var div = document.createElement('div');
       div.className = 'mb-3 row email-entry';
-      div.innerHTML = '<div class="col-md-6"><input type="email" class="form-control" name="emails[]" placeholder="E-mail" required></div>' +
+      // Alterado o input de "email" para "text"
+      div.innerHTML = '<div class="col-md-6"><input type="text" class="form-control" name="emails[]" placeholder="E-mail" required></div>' +
                       '<div class="col-md-6"><input type="password" class="form-control" name="senhas[]" placeholder="Senha" required></div>';
       container.appendChild(div);
     } else {
       alert('Limite máximo de 6 emails atingido.');
     }
   }
+
+  // Função para alternar entre modo de exibição e edição do email
+  function toggleEmailEdit(btn) {
+    var container = btn.parentElement;
+    var emailText = container.querySelector('.email-text');
+    var emailInput = container.querySelector('.email-input');
+    var saveBtn = container.querySelector('.save-email-btn');
+
+    // Alterna a visibilidade
+    if (emailInput.classList.contains('d-none')) {
+      emailInput.classList.remove('d-none');
+      emailText.classList.add('d-none');
+      btn.classList.add('d-none');
+      saveBtn.classList.remove('d-none');
+    } else {
+      emailInput.classList.add('d-none');
+      emailText.classList.remove('d-none');
+      btn.classList.remove('d-none');
+      saveBtn.classList.add('d-none');
+    }
+  }
+
+  // Função para "salvar" a edição – aqui você pode adicionar a lógica de persistência (AJAX ou form submission)
+  function saveEmailEdit(btn) {
+  var container = btn.parentElement;
+  var emailText = container.querySelector('.email-text');
+  var emailInput = container.querySelector('.email-input');
+  var editBtn = container.querySelector('.edit-email-btn');
+  var emailId = container.getAttribute('data-email-id');
+
+  fetch('/atualizar_email', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: 'email_id=' + encodeURIComponent(emailId) + '&novo_email=' + encodeURIComponent(emailInput.value)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      emailText.textContent = data.novo_email;
+      emailInput.classList.add('d-none');
+      emailText.classList.remove('d-none');
+      btn.classList.add('d-none');
+      editBtn.classList.remove('d-none');
+    } else {
+      alert('Falha ao atualizar: ' + data.message);
+    }
+  })
+  .catch(error => {
+    console.error('Erro:', error);
+    alert('Erro ao atualizar o email.');
+  });
+}
+
 </script>
 </body>
 </html>
