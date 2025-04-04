@@ -474,9 +474,9 @@ def gerenciar_usuarios():
 @app.route('/admin/tornar_admin/<int:user_id>', methods=['POST'])
 @login_required
 def tornar_admin(user_id):
-    # if not current_user.is_admin:
-    #     flash("Acesso negado!", "danger")
-    #     return redirect(url_for('dashboard'))
+     if not current_user.is_admin:
+         flash("Acesso negado!", "danger")
+         return redirect(url_for('dashboard'))
 
     usuario = User.query.get(user_id)
     if usuario:
