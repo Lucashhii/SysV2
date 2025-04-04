@@ -141,6 +141,17 @@ def listar_acessos():
     acessos = query.all()
     
     return render_template('acessos.html', acessos=acessos)
+    
+@app.route('/atualizar_email', methods=['POST'])
+def atualizar_email():
+    email_id = request.form.get('email_id')
+    novo_email = request.form.get('novo_email')
+    if not email_id or not novo_email:
+        return jsonify({'success': False, 'message': 'Dados insuficientes'}), 400
+    email_registro = EmailAcesso.query.get_or_404(email_id)
+    email_registro.email = novo_email
+    db.session.commit()
+    return jsonify({'success': True, 'novo_email': novo_email})
 
 @app.route('/adicionar_emails/<int:id>', methods=['POST'])
 def adicionar_emails(id):
