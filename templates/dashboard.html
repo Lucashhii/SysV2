@@ -62,12 +62,6 @@
                   <span class="d-none d-md-inline">Novo Ticket</span>
               </a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('gerenciar_usuarios') }}">
-                <i class="fas fa-users"></i>
-                <span class="d-none d-md-inline">Gerenciar Usuários</span>
-            </a>
-        </li>
           {% if current_user.is_admin %}
           <li class="nav-item">
               <a class="nav-link" href="{{ url_for('listar_tickets') }}">
@@ -92,6 +86,12 @@
               <i class="fa-solid fa-at"></i>
               <span class="d-none d-md-inline">Gerenciar Acessos</span>
           </a>
+      </li>
+      <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('gerenciar_usuarios') }}">
+                <i class="fas fa-users"></i>
+                <span class="d-none d-md-inline">Gerenciar Usuários</span>
+            </a>
       </li>
           {% endif %}
           <li class="nav-item">
