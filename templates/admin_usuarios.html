@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Usuários</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='tema.css') }}">
+
+
+    <style>
+        .sidebar {
+            width: 75px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #343a40;
+            transition: width 0.3s;
+            overflow-x: hidden;
+            padding-top: 20px;
+        }
+        .sidebar:hover {
+            width: 250px;
+        }
+        .sidebar .nav-link {
+            color: #fff;
+            white-space: nowrap;
+            padding: 15px;
+        }
+        .sidebar .nav-link i {
+            margin-right: 30px;
+        }
+        .sidebar .nav-link:hover {
+            background-color: #495057;
+            border-radius: 5px;
+        }
+        .content {
+            margin-left: 80px;
+            padding: 2rem;
+            transition: margin-left 0.3s;
+        }
+        .sidebar:hover + .content {
+            margin-left: 250px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar d-flex flex-column p-3">
+        <h4 class="text-center text-white mb-4">SysTI</h4>
+        <ul class="nav flex-column">
+            {% include "toggle_mode.html" %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('formulario') }}">
+                    <i class="fas fa-plus"></i>
+                    <span class="d-none d-md-inline">Novo Ticket</span>
+                </a>
+            </li>
+            {% if current_user.is_admin %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('listar_tickets') }}">
+                    <i class="fas fa-ticket-alt"></i>
+                    <span class="d-none d-md-inline">Tickets</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('registrar_periferico') }}">
+                    <i class="fa-solid fa-computer-mouse"></i> 
+                    <span class="d-none d-md-inline">Periféricos</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('gerenciar_hardware') }}">
+                    <i class="fas fa-desktop"></i>
+                    <span class="d-none d-md-inline">Gerenciar Hardware</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('listar_acessos') }}">
+                    <i class="fa-solid fa-at"></i>
+                    <span class="d-none d-md-inline">Gerenciar Acessos</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('dashboard') }}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span class="d-none d-md-inline">Dashboard</span>
+                </a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+                <a class="nav-link text-danger" href="{{ url_for('logout') }}">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="d-none d-md-inline">Sair</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    
+    <main class="content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    
+        <div class="container mt-5">
+            <div class="card shadow p-4">
+            <h2>Gerenciar Usuários</h2>
+            <table class="table table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Admin</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuario in usuarios %}
+                    <tr>
+                        <td>{{ usuario.id }}</td>
+                        <td>{{ usuario.username }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if usuario.is_admin else 'secondary' }}">
+                                {{ "Sim" if usuario.is_admin else "Não" }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if not usuario.is_admin %}
+                                <form action="{{ url_for('tornar_admin', user_id=usuario.id) }}" method="POST" style="display:inline-block;">
+                                    <button class="btn btn-sm btn-success" type="submit">Tornar Admin</button>
+                                </form>
+                            {% endif %}
+                            <a href="{{ url_for('editar_usuario', user_id=usuario.id) }}" class="btn btn-sm btn-primary">Editar</a>
+                            <form action="{{ url_for('excluir_usuario', user_id=usuario.id) }}" method="POST" style="display:inline-block;">
+                                <button class="btn btn-sm btn-danger" type="submit" onclick="return confirm('Tem certeza que deseja excluir este usuário?');">Excluir</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        </div>
+    </main>
+</body>
+</html>
+

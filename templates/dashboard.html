@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard - SysTI</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="static/tema.css">
+  <div id="graficoTickets"></div>
+ 
+
+
+
+  <style>
+    .sidebar {
+        width: 75px;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        background-color: #343a40;
+        transition: width 0.3s;
+        overflow-x: hidden;
+        padding-top: 20px;
+    }
+    .sidebar:hover {
+        width: 250px;
+    }
+    .sidebar .nav-link {
+        color: #fff;
+        white-space: nowrap;
+        padding: 15px;
+    }
+    .sidebar .nav-link i {
+        margin-right: 30px;
+    }
+    .sidebar .nav-link:hover {
+        background-color: #495057;
+        border-radius: 5px;
+    }
+    .content {
+        margin-left: 80px;
+        padding: 2rem;
+        transition: margin-left 0.3s;
+    }
+    .sidebar:hover + .content {
+        margin-left: 250px;
+    }
+  </style>
+</head>
+<body>
+    
+    <nav class="sidebar d-flex flex-column p-3">
+      <h4 class="text-center text-white mb-4">SysTI</h4>
+      <ul class="nav flex-column">
+        {% include "toggle_mode.html" %}
+          <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('formulario') }}">
+                  <i class="fas fa-plus"></i>
+                  <span class="d-none d-md-inline">Novo Ticket</span>
+              </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('gerenciar_usuarios') }}">
+                <i class="fas fa-users"></i>
+                <span class="d-none d-md-inline">Gerenciar Usuários</span>
+            </a>
+        </li>
+          {% if current_user.is_admin %}
+          <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('listar_tickets') }}">
+                  <i class="fas fa-ticket-alt"></i>
+                  <span class="d-none d-md-inline">Tickets</span>
+              </a>
+          <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('registrar_periferico') }}">
+                  <i class="fa-solid fa-computer-mouse"></i> 
+                  <span class="d-none d-md-inline">Periféricos</span>
+              </a>
+          </li>
+      </li>
+      <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('gerenciar_hardware') }}">
+              <i class="fas fa-desktop"></i>
+              <span class="d-none d-md-inline">Gerenciar Hardware</span>
+          </a>
+      </li>
+      <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('listar_acessos') }}">
+              <i class="fa-solid fa-at"></i>
+              <span class="d-none d-md-inline">Gerenciar Acessos</span>
+          </a>
+      </li>
+          {% endif %}
+          <li class="nav-item">
+              <a class="nav-link text-danger" href="{{ url_for('logout') }}">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <span class="d-none d-md-inline">Sair</span>
+              </a>
+          </li>
+      </ul>
+  </nav>
+        <main class="col-md-10 offset-md-2 content">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+
+        <h2 class="text-center">Bem-vindo, {{ current_user.username }}</h2>
+        <div class="card shadow p-4">
+          <h4>Histórico de Tickets</h4>
+          <table class="table table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Prioridade</th>
+                <th>Status</th>
+                <th>Data</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ticket in tickets %}
+              <tr>
+                <td>{{ ticket.id }}</td>
+                <td>{{ ticket.nome }}</td>
+                <td>
+                  {% if ticket.prioridade == 'Alta' %}
+                      <span class="badge bg-success">Alta</span>
+                  {% elif ticket.prioridade == 'Baixa' %}
+                      <span class="badge bg-primary">Baixa</span>
+                  {% else %}
+                      <span class="badge bg-warning">{{ ticket.prioridade }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if ticket.status == 'Resolvido' %}
+                  <span class="badge bg-success">Resolvido</span>
+                  {% else %}
+                  <span class="badge bg-warning">{{ ticket.status }}</span>
+                  {% endif %}
+                </td>
+                <td>{{ ticket.data_criacao.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td>
+                  <button class="btn btn-sm text-primary" title="Ver Detalhes" onclick="toggleDetails('{{ ticket.id }}')">
+                      <i class="fas fa-eye"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr id="details-{{ ticket.id }}" class="problem-details" style="display: none;">
+                <td colspan="6">
+                    <strong>Problema:</strong>
+                    <p class="problem-text">{{ ticket.problema }}</p>
+                    <strong>Usuário:</strong> {{ ticket.user.username if ticket.user else 'Usuário desconhecido' }}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </main>
+      <script>
+        function toggleDetails(ticketId) {
+            let detailsRow = document.getElementById(`details-${ticketId}`);
+            detailsRow.style.display = detailsRow.style.display === "none" ? "table-row" : "none";
+        }
+      </script>
+    </div>
+  </div>
+
+</body>
+</html>

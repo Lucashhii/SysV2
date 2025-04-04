@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciar Acessos</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='tema.css') }}">
+
+  <style>
+    .sidebar {
+        width: 75px;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        background-color: #343a40;
+        transition: width 0.3s;
+        overflow-x: hidden;
+        padding-top: 20px;
+    }
+    .sidebar:hover {
+        width: 250px;
+    }
+    .sidebar .nav-link {
+        color: #fff;
+        white-space: nowrap;
+        padding: 15px;
+    }
+    .sidebar .nav-link i {
+        margin-right: 30px;
+    }
+    .sidebar .nav-link:hover {
+        background-color: #495057;
+        border-radius: 5px;
+    }
+    .content {
+        margin-left: 80px;
+        padding: 2rem;
+        transition: margin-left 0.3s;
+    }
+    .sidebar:hover + .content {
+        margin-left: 250px;
+    }
+</style>
+</head>
+<body>
+  <!-- Barra lateral -->
+  <nav class="sidebar d-flex flex-column p-3">
+    <h4 class="text-center text-white mb-4">SysTI</h4>
+    <ul class="nav flex-column">
+      {% include "toggle_mode.html" %}
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('formulario') }}">
+                <i class="fas fa-plus"></i>
+                <span class="d-none d-md-inline">Novo Ticket</span>
+            </a>
+        </li>
+        {% if current_user.is_admin %}
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('listar_tickets') }}">
+                <i class="fas fa-ticket-alt"></i>
+                <span class="d-none d-md-inline">Tickets</span>
+            </a>
+        </li>
+        <!-- <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('gerenciar_software') }}">
+                <i class="fas fa-cogs"></i> 
+                <span class="d-none d-md-inline">Gerenciar Software</span>
+            </a> -->
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('registrar_periferico') }}">
+                <i class="fa-solid fa-computer-mouse"></i> 
+                <span class="d-none d-md-inline">Periféricos</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('gerenciar_hardware') }}">
+                <i class="fas fa-desktop"></i>
+                <span class="d-none d-md-inline">Gerenciar Hardware</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('gerenciar_usuarios') }}">
+                <i class="fas fa-users"></i>
+                <span class="d-none d-md-inline">Gerenciar Usuários</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('dashboard') }}">
+                <i class="fas fa-tachometer-alt"></i>
+                <span class="d-none d-md-inline">Dashboard</span>
+            </a>
+        </li>
+    
+        {% endif %}
+        <li class="nav-item">
+            <a class="nav-link text-danger" href="{{ url_for('logout') }}">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="d-none d-md-inline">Sair</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+  
+  <!-- Conteúdo principal -->
+  <main class="col-md-10 offset-md-2 content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    
+    <div class="row">
+      <!-- Formulário de Cadastro de Acesso (Coluna Esquerda) -->
+      <div class="col-md-4">
+        <div class="card shadow p-4">
+        <h4>{{ 'Editar Acesso' if acesso else 'Novo Acesso' }}</h4>
+        <form method="POST" action="{{ url_for('listar_acessos') }}">
+          {% if acesso %}
+            <input type="hidden" name="id" value="{{ acesso.id }}">
+          {% endif %}
+          <div class="mb-3">
+            <label class="form-label">Data de Entrada</label>
+            <input type="date" class="form-control" name="data_entrada" value="{{ acesso.data_entrada if acesso else '' }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Nome</label>
+            <input type="text" class="form-control" name="nome" value="{{ acesso.nome if acesso else '' }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Tipo</label>
+            <select class="form-control" name="tipo" required>
+                <option value=""></option>
+                <option value="Mercado Livre">Mercado Livre</option>
+                <option value="Gmail">Gmail</option>
+                <option value="Email">Email</option>
+                <option value="Tiny">Tiny</option>
+                <option value="Outros">Outros</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Setor</label>
+            <select class="form-control" name="setor" required>
+                <option value=""></option>
+                <option value="CS">CS</option>
+                <option value="Vendas">Vendas</option>
+                <option value="Markting">Marketing</option>
+                <option value="Operações">Operações</option>
+                <option value="Administrativo">Administrativo</option>
+            </select>
+        </div>
+          <button type="submit" class="btn btn-success">Salvar</button>
+        </form>
+      </div>
+    </div>
+      <div class="col-md-8">
+        <div class="card shadow p-4">
+        <h4>Lista de Acessos</h4>
+        
+        <form method="GET" class="row g-2 mb-3 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label">Nome</label>
+            <input type="text" class="form-control" name="nome" value="{{ acesso.nome if acesso else '' }}" >
+        </div>
+          <div class="col-md-3">
+            <label class="form-label">Tipo</label>
+            <select class="form-control" name="tipo">
+                <option value=""></option>
+                <option value="Mercado Livre">Mercado Livre</option>
+                <option value="Gmail">Gmail</option>
+                <option value="Email">Email</option>
+                <option value="Tiny">Tiny</option>
+                <option value="Outros">Outros</option>
+            </select>
+        </div>
+          <div class="col-md-3">
+            <label class="form-label">Setor</label>
+            <select class="form-control" name="setor">
+                <option value=""></option>
+                <option value="CS">CS</option>
+                <option value="Vendas">Vendas</option>
+                <option value="Markting">Marketing</option>
+                <option value="Operações">Operações</option>
+                <option value="Administrativo">Administrativo</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+          </div>
+        </form>
+        
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Data de Entrada</th>
+              <th>Nome</th>
+              <th>Tipo</th>
+              <th>Setor</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for acesso in acessos %}
+            <tr>
+              <td>{{ acesso.id }}</td>
+              <td>{{ acesso.data_entrada.strftime('%d/%m/%Y') }}</td>
+              <td>{{ acesso.nome }}</td>
+              <td>{{ acesso.tipo }}</td>
+              <td>{{ acesso.setor }}</td>
+              <td>
+                <button class="btn btn-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEmails{{ acesso.id }}" aria-expanded="false" aria-controls="collapseEmails{{ acesso.id }}">
+                  <i class="fas fa-eye"></i> 
+                </button>
+                <a href="{{ url_for('editar_acesso', id=acesso.id) }}" class="btn btn-primary btn-sm">
+                  <i class="fas fa-edit"></i>
+                </a>
+                <a href="{{ url_for('deletar_acesso', id=acesso.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir?');">
+                  <i class="fas fa-trash"></i>
+                </a>
+                <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalAdicionarEmails{{ acesso.id }}">
+                  <i class="fas fa-plus"></i> Add
+                </button>
+              </td>
+            </tr>
+            
+            <tr class="collapse" id="collapseEmails{{ acesso.id }}">
+              <td colspan="6">
+                <div class="card card-body">
+                  <h6>Emails cadastrados para {{ acesso.nome }}</h6>
+                  {% if acesso.emails|length > 0 %}
+                  <ul class="list-group">
+                    {% for email in acesso.emails %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                      <span>{{ email.email }}</span>
+                      <span>Senha: {{ email.senha }}</span>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                  {% else %}
+                  <p class="mb-0">Nenhum email cadastrado.</p>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            
+            <!-- Modal para adicionar emails e senhas -->
+            <div class="modal fade" id="modalAdicionarEmails{{ acesso.id }}" tabindex="-1" aria-labelledby="modalAdicionarEmailsLabel{{ acesso.id }}" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <form method="POST" action="{{ url_for('adicionar_emails', id=acesso.id) }}">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="modalAdicionarEmailsLabel{{ acesso.id }}">Adicionar Emails para {{ acesso.nome }}</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div id="email-container-{{ acesso.id }}">
+                        <div class="mb-3 row email-entry">
+                          <div class="col-md-6">
+                            <input type="email" class="form-control" name="emails[]" placeholder="E-mail" required>
+                          </div>
+                          <div class="col-md-6">
+                            <input type="password" class="form-control" name="senhas[]" placeholder="Senha" required>
+                          </div>
+                        </div>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-info" onclick="adicionarCampoEmail('{{ acesso.id }}')">
+                        <i class="fas fa-plus"></i> Adicionar Campo
+                      </button>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="submit" class="btn btn-success">Salvar Emails</button>
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    </div>
+  </div>
+</main>
+
+<script>
+
+  function adicionarCampoEmail(acessoId) {
+    var container = document.getElementById('email-container-' + acessoId);
+    var qtd = container.getElementsByClassName('email-entry').length;
+    if (qtd < 6) {
+      var div = document.createElement('div');
+      div.className = 'mb-3 row email-entry';
+      div.innerHTML = '<div class="col-md-6"><input type="email" class="form-control" name="emails[]" placeholder="E-mail" required></div>' +
+                      '<div class="col-md-6"><input type="password" class="form-control" name="senhas[]" placeholder="Senha" required></div>';
+      container.appendChild(div);
+    } else {
+      alert('Limite máximo de 6 emails atingido.');
+    }
+  }
+</script>
+</body>
+</html>

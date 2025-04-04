@@ -1,0 +1,29 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.card{
+    border-radius: 10px;
+    border:none;
+    box-shadow: 0px 4px 10px rgba(0,0,0.1);
+}
+
+.btn{
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.form-control {
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 16px;
+}
+
+a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+a:hover {
+    text-decoration: underline;
+}

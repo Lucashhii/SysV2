@@ -1,0 +1,260 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Periféricos</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="static/tema.css">
+    <style>
+        .sidebar {
+            width: 75px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #343a40;
+            transition: width 0.3s;
+            overflow-x: hidden;
+            padding-top: 20px;
+        }
+        .sidebar:hover {
+            width: 250px;
+        }
+        .sidebar .nav-link {
+            color: #fff;
+            white-space: nowrap;
+            padding: 15px;
+        }
+        .sidebar .nav-link i {
+            margin-right: 30px;
+        }
+        .sidebar .nav-link:hover {
+            background-color: #495057;
+            border-radius: 5px;
+        }
+        .content {
+            margin-left: 80px;
+            padding: 2rem;
+            transition: margin-left 0.3s;
+        }
+        .sidebar:hover + .content {
+            margin-left: 250px;
+        }
+    </style>
+    <script>
+        function toggleDetails(id) {
+            var detailsRow = document.getElementById('details-' + id);
+            if (detailsRow.style.display === 'none' || detailsRow.style.display === '') {
+                detailsRow.style.display = 'table-row';
+            } else {
+                detailsRow.style.display = 'none';
+            }
+        }
+    </script>
+</head>
+<body>
+    <main class="d-flex flex-column flex-grow-1 content">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <nav class="sidebar d-flex flex-column p-3">
+        <h4 class="text-center text-white mb-4">SysTI</h4>
+        <ul class="nav flex-column">
+            {% include "toggle_mode.html" %}
+            
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('formulario') }}">
+                    <i class="fas fa-plus"></i>
+                    <span class="d-none d-md-inline">Novo Ticket</span>
+                </a>
+            </li>
+            {% if current_user.is_admin %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('listar_tickets') }}">
+                    <i class="fas fa-ticket-alt"></i>
+                    <span class="d-none d-md-inline">Tickets</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('gerenciar_hardware') }}">
+                    <i class="fas fa-desktop"></i>
+                    <span class="d-none d-md-inline">Gerenciar Hardware</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('gerenciar_usuarios') }}">
+                    <i class="fas fa-users"></i>
+                    <span class="d-none d-md-inline">Gerenciar Usuários</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('listar_acessos') }}">
+                    <i class="fa-solid fa-at"></i>
+                    <span class="d-none d-md-inline">Gerenciar Acessos</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('dashboard') }}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span class="d-none d-md-inline">Dashboard</span>
+                </a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+                <a class="nav-link text-danger" href="{{ url_for('logout') }}">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="d-none d-md-inline">Sair</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <main class="col-md-10 offset-md-2 content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+        
+
+<div class="row">
+            <div class="col-md-4">
+                <div class="card shadow p-4">
+                <h4>{{ 'Editar Periférico' if periferico else 'Novo Periférico' }}</h4>
+                <form method="POST" action="{{ url_for('registrar_periferico') }}">
+                    <input type="hidden" name="id" value="{{ periferico.id if periferico else '' }}">
+                    <div class="mb-3">
+                        <label class="form-label">Nome do Periférico</label>
+                        <input type="text" class="form-control" name="nome" value="{{ periferico.nome if periferico else '' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tipo</label>
+                        <select class="form-control" name="tipo" required>
+                            <option value="Mouse">Mouse</option>
+                            <option value="Teclado">Teclado</option>
+                            <option value="Monitor">Monitor</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-control" name="status" required>
+                            <option value="estoque">Estoque</option>
+                            <option value="em uso">Em Uso</option>
+                            <option value="refugo">Refugo</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Data de Entrada</label>
+                        <input type="date" class="form-control" name="data_entrada" value="{{ periferico.data_entrada if periferico else '' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Vincular a Hardware</label>
+                        <select class="form-control" name="hardware_id" id="hardware_id">
+                            <option value="">Nenhum</option>
+                            {% for hardware in hardwares %}
+                            <option value="{{ hardware.id }}" {% if periferico is defined and periferico.hardware_id == hardware.id %}selected{% endif %}>
+                                {{ hardware.nome }}
+                              </option>
+                              
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success">Salvar</button>
+                </form>
+            </div>
+        </div>
+            <div class="col-md-8">
+                <div class="card shadow p-4">
+                    <h4>Lista de Periféricos</h4>
+                    <div class="row">
+                        <!-- Filtros -->
+                        <div class="col-md-12 mb-3">
+                            <form method="GET" class="row g-2">
+                                <div class="col-md-3">
+                                    <input type="text" class="form-control" name="nome" placeholder="Nome do Periférico" value="{{ request.args.get('nome', '') }}">
+                                </div>
+                                <div class="col-md-2">
+                                    <select class="form-control" name="tipo">
+                                        <option value="">Tipo</option>
+                                        <option value="Mouse" {% if request.args.get('tipo') == 'Mouse' %}selected{% endif %}>Mouse</option>
+                                        <option value="Teclado" {% if request.args.get('tipo') == 'Teclado' %}selected{% endif %}>Teclado</option>
+                                        <option value="Monitor" {% if request.args.get('tipo') == 'Monitor' %}selected{% endif %}>Monitor</option>
+                                        <option value="Outros" {% if request.args.get('tipo') == 'Adaptador Wireless' %}selected{% endif %}>Outros</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <select class="form-control" name="status">
+                                        <option value="">Status</option>
+                                        <option value="estoque" {% if request.args.get('status') == 'estoque' %}selected{% endif %}>Estoque</option>
+                                        <option value="em uso" {% if request.args.get('status') == 'em uso' %}selected{% endif %}>Em Uso</option>
+                                        <option value="refugo" {% if request.args.get('status') == 'refugo' %}selected{% endif %}>Refugo</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                                </div>
+                            </form>
+                        </div>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Data</th>
+                                    <th>Nome</th>
+                                    <th>Hardware</th>
+                                    <th>Status</th>
+                                    
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in perifericos %}
+                                <tr>
+                                    <td>{{ item.id }}</td>
+                                    <td>{{ item.data_entrada }}</td>
+                                    <td>{{ item.nome }}</td>
+                                    <td>{{ item.hardware.nome if item.hardware else 'Nenhum' }}</td>
+                                    <td>{{ item.status }}</td>
+                                    <td>
+                                        <button class="btn btn-info btn-sm" onclick="toggleDetails('{{ item.id }}')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <a href="{{ url_for('editar_periferico', id=item.id) }}" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{{ url_for('deletar_periferico', id=item.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir?');">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+
+                                    </td>
+                                </tr>
+                                <tr id="details-{{ item.id }}" style="display: none;">
+                                    <td colspan="7">
+                                        <strong>Detalhes do Periférico:</strong>
+                                        <ul>
+                                            <li>Nome: {{ item.nome }}</li>
+                                            <li>Tipo: {{ item.tipo }}</li>
+                                            <li>Status: {{ item.status }}</li>
+                                            <li>Hardware Vinculado: {{ item.hardware.nome if item.hardware else 'Nenhum' }}</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

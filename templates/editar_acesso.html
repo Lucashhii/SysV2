@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Acesso</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='tema.css') }}">
+  <style>
+    .sidebar {
+        width: 75px;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        background-color: #343a40;
+        transition: width 0.3s;
+        overflow-x: hidden;
+        padding-top: 20px;
+    }
+    .sidebar:hover {
+        width: 250px;
+    }
+    .sidebar .nav-link {
+        color: #fff;
+        white-space: nowrap;
+        padding: 15px;
+    }
+    .sidebar .nav-link i {
+        margin-right: 30px;
+    }
+    .sidebar .nav-link:hover {
+        background-color: #495057;
+        border-radius: 5px;
+    }
+    .content {
+        margin-left: 80px;
+        padding: 2rem;
+        transition: margin-left 0.3s;
+    }
+    .sidebar:hover + .content {
+        margin-left: 250px;
+    }
+</style>
+
+</head>
+<body>
+  
+  <!-- Sidebar -->
+  <nav class="sidebar d-flex flex-column p-3">
+    <h4 class="text-center text-white mb-4">SysTI</h4>
+    <ul class="nav flex-column">
+      {% include "toggle_mode.html" %}
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('formulario') }}">
+          <i class="fas fa-plus"></i>
+          <span class="d-none d-md-inline">Novo Ticket</span>
+        </a>
+      </li>
+      {% if current_user.is_admin %}
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('listar_tickets') }}">
+          <i class="fas fa-ticket-alt"></i>
+          <span class="d-none d-md-inline">Tickets</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('registrar_periferico') }}">
+          <i class="fa-solid fa-computer-mouse"></i> 
+          <span class="d-none d-md-inline">Periféricos</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('gerenciar_hardware') }}">
+          <i class="fas fa-desktop"></i>
+          <span class="d-none d-md-inline">Gerenciar Hardware</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('listar_acessos') }}">
+            <i class="fa-solid fa-at"></i>
+            <span class="d-none d-md-inline">Gerenciar Acessos</span>
+        </a>
+    </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('gerenciar_usuarios') }}">
+          <i class="fas fa-users"></i>
+          <span class="d-none d-md-inline">Gerenciar Usuários</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('dashboard') }}">
+          <i class="fas fa-tachometer-alt"></i>
+          <span class="d-none d-md-inline">Dashboard</span>
+        </a>
+      </li>
+      {% endif %}
+      <li class="nav-item">
+        <a class="nav-link text-danger" href="{{ url_for('logout') }}">
+          <i class="fas fa-sign-out-alt"></i>
+          <span class="d-none d-md-inline">Sair</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <main class="content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    
+    <h2 class="mb-3">Editar Acesso</h2>
+    <form action="{{ url_for('editar_acesso', id=acesso.id) }}" method="post" class="border p-3 rounded shadow-sm mb-4">
+      <input type="hidden" name="id" value="{{ acesso.id }}">
+      <div class="mb-3">
+        <label for="nome" class="form-label">Nome</label>
+        <input type="text" class="form-control" id="nome" name="nome" value="{{ acesso.nome }}" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Tipo</label>
+        <input type="text" class="form-control" id="tipo" name="tipo" value="{{ acesso.tipo }}">
+      </div>
+      <div class="mb-3">
+        <label for="setor" class="form-label">Setor</label>
+        <input type="text" class="form-control" id="setor" name="setor" value="{{ acesso.setor }}">
+      </div>
+      <div class="mb-3">
+        <label for="data_entrada" class="form-label">Data de Entrada</label>
+        <input type="date" class="form-control" id="data_entrada" name="data_entrada"
+               value="{{ acesso.data_entrada.strftime('%Y-%m-%d') if acesso.data_entrada else '' }}">
+      </div>
+      <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+      <a href="{{ url_for('listar_acessos') }}" class="btn btn-secondary">Cancelar</a>
+    </form>
+    <div class="card shadow p-4">
+    <h3 class="mt-4">E-mails Cadastrados</h3>
+    <table class="table table-striped">
+      
+      <thead>
+        <tr>
+          <th>E-mail</th>
+          <th>Senha</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for email in acesso.emails %}
+        <tr>
+          <td>{{ email.email }}</td>
+          <td>{{ email.senha }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </main>
+  
+</body>
+</html>

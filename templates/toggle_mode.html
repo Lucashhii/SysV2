@@ -1,0 +1,37 @@
+<li class="nav-item">
+    <a href="#" class="nav-link theme-toggle" id="themeToggle">
+        <i id="themeIcon" class="fas fa-moon"></i>
+        <span class="d-none d-md-inline">Tema</span>
+    </a>
+</li>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const body = document.body;
+    const icon = document.getElementById("themeIcon");
+    const button = document.getElementById("themeToggle");
+
+    function updateTheme() {
+        if (localStorage.getItem("mode") === "dark") {
+            body.classList.add("dark-mode");
+            icon.classList.remove("fa-moon");
+            icon.classList.add("fa-sun");
+            icon.style.color = "yellow";
+        } else {
+            body.classList.remove("dark-mode");
+            icon.classList.remove("fa-sun");
+            icon.classList.add("fa-moon");
+            icon.style.color = "white";
+        }
+    }
+
+    button.addEventListener("click", function (event) {
+        event.preventDefault();
+        const newMode = body.classList.contains("dark-mode") ? "light" : "dark";
+        localStorage.setItem("mode", newMode);
+        updateTheme();
+    });
+
+    updateTheme();
+});
+</script>

@@ -1,0 +1,117 @@
+/* Definição de variáveis */
+:root {
+    --background-light: white;
+    --text-light: black;
+    --background-dark: #121212;
+    --text-dark: white;
+    --sidebar-light: #343a40;
+    --sidebar-dark: #1f1f1f;
+    --btn-hover-light: #333;
+    --btn-hover-dark: #444;
+    --success-color: #28a745;
+    --success-hover: #218838;
+    --danger-color: #dc3545;
+    --btn-primary: #4a4cda;
+    --fa-trash: #dc3545;
+}
+
+/* Modo Claro */
+body {
+    background-color: var(--background-light);
+    color: var(--text-light);
+    transition: all 0.3s ease-in-out;
+}
+
+.sidebar {
+    background-color: var(--sidebar-light);
+}
+
+.nav-link {
+    color: white;
+}
+
+.btn {
+    color: white;
+    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+}
+
+/* Modo Escuro */
+body.dark-mode {
+    background-color: var(--background-dark);
+    color: var(--text-dark);
+}
+
+body.dark-mode .sidebar {
+    background-color: var(--sidebar-dark);
+}
+
+body.dark-mode .nav-link {
+    color: #bdbdbd;
+}
+
+body.dark-mode .btn {
+    background-color: var(--btn-hover-dark);
+}
+
+body.dark-mode .btn:hover {
+    background-color: var(--btn-hover-light);
+}
+
+/* Ícones de tema */
+#themeIcon.fa-moon {
+    color: black !important;
+}
+
+#themeIcon.fa-sun {
+    color: yellow !important;
+}
+
+/* Botão de alternância do tema */
+.theme-toggle {
+    color: #fff;
+    white-space: nowrap;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.theme-toggle i {
+    margin-right: 10px;
+}
+
+.theme-toggle:hover {
+    background-color: #495057;
+    border-radius: 5px;
+}
+
+/* Botões Específicos */
+.btn-success {
+    background-color: var(--success-color) !important;
+    border-color: var(--success-color) !important;
+    color: white !important;
+}
+
+.btn-success:hover {
+    background-color: var(--success-hover) !important;
+    border-color: #1e7e34 !important;
+}
+
+.text-danger {
+    color: var(--danger-color) !important;
+}
+
+.btn-primary{
+    background-color: var(--btn-primary)!important;
+    
+    
+}
+
+.page-perifericos .content {
+    max-width: 90%;
+}
+
+.btn-danger {
+    background-color: var(--fa-trash)!important;
+}
