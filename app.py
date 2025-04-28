@@ -1,10 +1,12 @@
-from flask import Flask, render_template, redirect, url_for, flash, request, send_file
+
+from flask import Flask, render_template, redirect, url_for, flash, request, send_file, jsonify
+
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+
 import matplotlib.pyplot as plt
 import base64
 from io import BytesIO
-
 
 from flask_migrate import Migrate
 
@@ -19,8 +21,7 @@ from sqlalchemy.orm import joinedload
 
 import pytz
 
-
-
+import os
 
 app = Flask(__name__)
 
@@ -142,28 +143,47 @@ def listar_acessos():
     
     return render_template('acessos.html', acessos=acessos)
     
+
+
 @app.route('/atualizar_email', methods=['POST'])
 def atualizar_email():
-    email_id = request.form.get('email_id')
+    email_id   = request.form.get('email_id')
     novo_email = request.form.get('novo_email')
+    nova_senha = request.form.get('nova_senha')  # <— capturando a senha
+
     if not email_id or not novo_email:
         return jsonify({'success': False, 'message': 'Dados insuficientes'}), 400
+
     email_registro = EmailAcesso.query.get_or_404(email_id)
     email_registro.email = novo_email
+    if nova_senha is not None:
+        email_registro.senha = nova_senha
     db.session.commit()
-    return jsonify({'success': True, 'novo_email': novo_email})
+
+    return jsonify({
+        'success': True,
+        'novo_email': novo_email,
+        'nova_senha': nova_senha
+    })
 
 @app.route('/adicionar_emails/<int:id>', methods=['POST'])
 def adicionar_emails(id):
-    acesso = Acessos.query.get(id)
+    acesso = Acessos.query.get_or_404(id)
     emails = request.form.getlist('emails[]')
     senhas = request.form.getlist('senhas[]')
-    for email, senha in zip(emails, senhas):
-        if email:  # Certifica que o email não esteja vazio
-            novo_email = EmailAcesso(email=email, senha=senha, acesso_id=acesso.id)
-            db.session.add(novo_email)
+
+    for idx, email in enumerate(emails):
+        texto = email.strip()
+        if not texto:
+            continue
+        senha = senhas[idx] if idx < len(senhas) else ''
+        db.session.add(EmailAcesso(email=texto, senha=senha, acesso_id=acesso.id))
+
     db.session.commit()
+    flash(f'{len(emails)} e-mail(s) adicionados com sucesso!', 'success')
     return redirect(url_for('listar_acessos'))
+
+
 
 # Rotas para editar e deletar acesso (exemplo)
 @app.route('/editar_acesso/<int:id>', methods=['GET', 'POST'])
