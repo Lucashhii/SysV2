@@ -241,16 +241,26 @@
                   {% if acesso.emails|length > 0 %}
                   <ul class="list-group">
                     {% for email in acesso.emails %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                      <div class="email-container" data-email-id="{{ email.id }}">
-                        <span class="email-text">{{ email.email }}</span>
-                        <!-- Input para edição, inicialmente oculto -->
-                        <input type="text" class="form-control email-input d-none" value="{{ email.email }}">
-                        <button class="btn btn-sm btn-secondary edit-email-btn" onclick="toggleEmailEdit(this)">Editar</button>
-                        <button class="btn btn-sm btn-success save-email-btn d-none" onclick="saveEmailEdit(this)">Salvar</button>
+                    <li class="list-group-item email-row" data-email-id="{{ email.id }}">
+                      <div class="row align-items-center">
+                        <!-- E-mail -->
+                        <div class="col-md-4">
+                          <span class="email-text view-mode">{{ email.email }}</span>
+                          <input type="text" class="form-control email-input edit-mode d-none" value="{{ email.email }}">
+                        </div>
+                        <!-- Senha -->
+                        <div class="col-md-4">
+                          <span class="senha-text view-mode">Senha: {{ email.senha }}</span>
+                          <input type="password" class="form-control senha-input edit-mode d-none" value="{{ email.senha }}">
+                        </div>
+                        <!-- Ações -->
+                        <div class="col-md-4 text-end">
+                          <button class="btn btn-sm btn-secondary view-mode" onclick="toggleEmailEdit(this)">Editar</button>
+                          <button class="btn btn-sm btn-success edit-mode d-none" onclick="saveEmailEdit(this)">Salvar</button>
+                        </div>
                       </div>
-                      <span>Senha: {{ email.senha }}</span>
                     </li>
+                    
                     {% endfor %}
                   </ul>
                   {% else %}
@@ -260,118 +270,127 @@
               </td>
             </tr>
             
-            <!-- Modal para adicionar emails e senhas -->
-            <div class="modal fade" id="modalAdicionarEmails{{ acesso.id }}" tabindex="-1" aria-labelledby="modalAdicionarEmailsLabel{{ acesso.id }}" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <form method="POST" action="{{ url_for('adicionar_emails', id=acesso.id) }}">
-                    <div class="modal-header">
-                      <h5 class="modal-title" id="modalAdicionarEmailsLabel{{ acesso.id }}">Adicionar Emails para {{ acesso.nome }}</h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                    </div>
-                    <div class="modal-body">
-                      <div id="email-container-{{ acesso.id }}">
-                        <div class="mb-3 row email-entry">
-                          <div class="col-md-6">
-                            <!-- Alterado de type="email" para type="text" para liberar o campo -->
-                            <input type="text" class="form-control" name="emails[]" placeholder="E-mail" required>
-                          </div>
-                          <div class="col-md-6">
-                            <input type="password" class="form-control" name="senhas[]" placeholder="Senha" required>
+
+              <!-- Modal para adicionar emails e senhas -->
+              <div class="modal fade" id="modalAdicionarEmails{{ acesso.id }}" tabindex="-1" aria-labelledby="modalAdicionarEmailsLabel{{ acesso.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <form id="form-add-{{ acesso.id }}" data-url="{{ url_for('adicionar_emails', id=acesso.id) }}" onsubmit='submitAddEmails(event, {{ acesso.id }}); return false;'>
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="modalAdicionarEmailsLabel{{ acesso.id }}">Adicionar Emails para {{ acesso.nome }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <div class="modal-body">
+                        <div id="email-container-{{ acesso.id }}">
+                          <div class="mb-3 row email-entry">
+                            <div class="col-md-6">
+                              <input type="text" name="emails[]" class="form-control" placeholder="E-mail" required>
+                            </div>
+                            <div class="col-md-6">
+                              <input type="password" name="senhas[]" class="form-control" placeholder="Senha" required>
+                            </div>
                           </div>
                         </div>
+                        <button type="button" class="btn btn-sm btn-info" onclick="adicionarCampoEmail({{ acesso.id }})">
+                          <i class="fas fa-plus"></i> Adicionar Campo
+                        </button>
                       </div>
-                      <button type="button" class="btn btn-sm btn-info" onclick="adicionarCampoEmail('{{ acesso.id }}')">
-                        <i class="fas fa-plus"></i> Adicionar Campo
-                      </button>
-                    </div>
-                    <div class="modal-footer">
-                      <button type="submit" class="btn btn-success">Salvar Emails</button>
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                    </div>
-                  </form>
+                      <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Salvar Emails</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                      </div>
+                    </form>
+                  </div>
                 </div>
               </div>
-            </div>
-            {% endfor %}
-          </tbody>
-        </table>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-    </div>
-  </div>
-</main>
+  </main>
 
 <script>
-  function adicionarCampoEmail(acessoId) {
-    var container = document.getElementById('email-container-' + acessoId);
-    var qtd = container.getElementsByClassName('email-entry').length;
-    if (qtd < 6) {
-      var div = document.createElement('div');
+    function adicionarCampoEmail(id) {
+      const container = document.getElementById('email-container-' + id);
+      const qtd = container.querySelectorAll('.email-entry').length;
+      if (qtd >= 6) return alert('Máx. 6 e-mails.');
+      const div = document.createElement('div');
       div.className = 'mb-3 row email-entry';
-      // Alterado o input de "email" para "text"
-      div.innerHTML = '<div class="col-md-6"><input type="text" class="form-control" name="emails[]" placeholder="E-mail" required></div>' +
-                      '<div class="col-md-6"><input type="password" class="form-control" name="senhas[]" placeholder="Senha" required></div>';
+      div.innerHTML = `
+        <div class="col-md-6">
+          <input type="text" name="emails[]" class="form-control" placeholder="E-mail" required>
+        </div>
+        <div class="col-md-6">
+          <input type="password" name="senhas[]" class="form-control" placeholder="Senha" required>
+        </div>`;
       container.appendChild(div);
-    } else {
-      alert('Limite máximo de 6 emails atingido.');
     }
-  }
 
-  // Função para alternar entre modo de exibição e edição do email
+    function submitAddEmails(evt, id) {
+      evt.preventDefault();
+      const form = document.getElementById(`form-add-${id}`);
+      const url = form.dataset.url;
+      const entries = document.getElementById('email-container-' + id).querySelectorAll('.email-entry');
+      const params = new URLSearchParams();
+      entries.forEach(entry => {
+        const email = entry.querySelector('input[name="emails[]"]').value.trim();
+        const senha = entry.querySelector('input[name="senhas[]"]').value;
+        if (email) {
+          params.append('emails[]', email);
+          params.append('senhas[]', senha);
+        }
+      });
+      fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: params.toString()
+      })
+      .then(res => {
+        if (res.redirected) window.location.href = res.url;
+        else {
+          bootstrap.Modal.getInstance(document.getElementById('modalAdicionarEmails' + id)).hide();
+          window.location.reload();
+        }
+      })
+      .catch(err => { console.error(err); alert('Falha ao salvar e-mails.'); });
+    }
+  // 2) TOGGLE ENTRE EXIBIÇÃO E INPUTS INLINE
   function toggleEmailEdit(btn) {
-    var container = btn.parentElement;
-    var emailText = container.querySelector('.email-text');
-    var emailInput = container.querySelector('.email-input');
-    var saveBtn = container.querySelector('.save-email-btn');
-
-    // Alterna a visibilidade
-    if (emailInput.classList.contains('d-none')) {
-      emailInput.classList.remove('d-none');
-      emailText.classList.add('d-none');
-      btn.classList.add('d-none');
-      saveBtn.classList.remove('d-none');
-    } else {
-      emailInput.classList.add('d-none');
-      emailText.classList.remove('d-none');
-      btn.classList.remove('d-none');
-      saveBtn.classList.add('d-none');
-    }
+    const row = btn.closest('.email-row');
+    row.querySelectorAll('.view-mode').forEach(el => el.classList.toggle('d-none'));
+    row.querySelectorAll('.edit-mode').forEach(el => el.classList.toggle('d-none'));
   }
 
-  // Função para "salvar" a edição – aqui você pode adicionar a lógica de persistência (AJAX ou form submission)
+  // 3) GRAVA VIA AJAX E ATUALIZA A TELA SEM ERRO DE ALERT
   function saveEmailEdit(btn) {
-  var container = btn.parentElement;
-  var emailText = container.querySelector('.email-text');
-  var emailInput = container.querySelector('.email-input');
-  var editBtn = container.querySelector('.edit-email-btn');
-  var emailId = container.getAttribute('data-email-id');
+    const row      = btn.closest('.email-row');
+    const emailId  = row.getAttribute('data-email-id');
+    const novoMail = row.querySelector('input.email-input').value;
+    const novaSen  = row.querySelector('input.senha-input').value;
 
-  fetch('/atualizar_email', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: 'email_id=' + encodeURIComponent(emailId) + '&novo_email=' + encodeURIComponent(emailInput.value)
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      emailText.textContent = data.novo_email;
-      emailInput.classList.add('d-none');
-      emailText.classList.remove('d-none');
-      btn.classList.add('d-none');
-      editBtn.classList.remove('d-none');
-    } else {
-      alert('Falha ao atualizar: ' + data.message);
-    }
-  })
-  .catch(error => {
-    console.error('Erro:', error);
-    alert('Erro ao atualizar o email.');
-  });
-}
-
+    fetch('{{ url_for("atualizar_email") }}', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body:   `email_id=${encodeURIComponent(emailId)}`
+           + `&novo_email=${encodeURIComponent(novoMail)}`
+           + `&nova_senha=${encodeURIComponent(novaSen)}`
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (!data.success) {
+        return alert('Falha: ' + data.message);
+      }
+      // atualiza textos
+      row.querySelector('.email-text').textContent = data.novo_email;
+      row.querySelector('.senha-text').textContent = 'Senha: ' + data.nova_senha;
+      toggleEmailEdit(btn);  // volta ao modo view
+    })
+    .catch(err => console.error('Update error:', err));
+  }
 </script>
+
+
 </body>
 </html>
