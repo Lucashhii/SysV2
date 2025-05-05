@@ -23,6 +23,10 @@ import pytz
 
 import os
 
+from sysinf import sysinfo_bp
+
+
+
 app = Flask(__name__)
 
 migrate = Migrate(app, db)
@@ -30,13 +34,19 @@ app.config['SECRET_KEY'] = 'aBa3f6d9b7e4c5f2d1a8b0c3e7d6f4a1b2c5e6d7f8a9b0c3e2f1
 
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://tickets_db_74ye_user:LwckbTpd8MPv5EbfTU6hm09iRzCP3Q6C@dpg-cve0e4hc1ekc73eb1sc0-a/tickets_db_74ye'
+# app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'uma_string_super_secreta_e_aleatoria')
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tickets.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app) 
 
+
+
 datatime_corrigir = pytz.timezone("America/Sao_Paulo")
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
+
+app.register_blueprint(sysinfo_bp)
 
 @login_manager.user_loader
 def load_user(user_id):
