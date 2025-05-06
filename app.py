@@ -23,7 +23,6 @@ import pytz
 
 import os
 
-from sysinf import sysinfo_bp
 
 
 
@@ -46,7 +45,6 @@ datatime_corrigir = pytz.timezone("America/Sao_Paulo")
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-app.register_blueprint(sysinfo_bp)
 
 @login_manager.user_loader
 def load_user(user_id):
