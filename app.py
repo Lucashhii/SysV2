@@ -1,5 +1,5 @@
 
-from flask import Flask, render_template, redirect, url_for, flash, request, send_file, jsonify
+from flask import Flask, render_template, redirect, url_for, flash, request, send_file, jsonify, Response
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
@@ -115,6 +115,55 @@ def listar_tickets():
 
 
     return render_template('tickets.html', tickets=tickets)
+
+@app.route('/acessos/exportar', methods=['GET'])
+def exportar_acessos():
+        acessos = Acessos.query.all()
+
+        # Descobre quantos pares emailN/ senhaN serão necessários
+        max_emails = max(len(a.emails) for a in acessos) if acessos else 0
+
+        # Monta cabeçalho fixo + pares dinâmicos
+        headers = ['id', 'nome', 'tipo', 'setor', 'data_entrada']
+        for i in range(1, max_emails + 1):
+            headers.append(f'email{i}')
+            headers.append(f'senha{i}')
+
+        # Usa StringIO com newline='' para preservar quebras de linha corretamente
+        proxy = io.StringIO(newline='')
+        writer = csv.writer(proxy, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+        # Escreve cabeçalho
+        writer.writerow(headers)
+
+        # Preenche cada linha
+        for a in acessos:
+            row = [
+                a.id,
+                a.nome,
+                a.tipo,
+                a.setor,
+                a.data_entrada.strftime('%Y-%m-%d') if a.data_entrada else ''
+            ]
+
+            # Insere pares email/senha; se faltar, preenche com vazio
+            for idx in range(max_emails):
+                if idx < len(a.emails):
+                    email_obj = a.emails[idx]
+                    row.append(email_obj.email)
+                    row.append(email_obj.senha)
+                else:
+                    row.append('')
+                    row.append('')
+
+            writer.writerow(row)
+
+        proxy.seek(0)
+        return Response(
+            proxy.getvalue(),
+            mimetype='text/csv; charset=utf-8',
+            headers={'Content-Disposition':'attachment; filename=acessos_export.csv'}
+        )
 
 @app.route('/acessos', methods=['GET', 'POST'])
 def listar_acessos():
